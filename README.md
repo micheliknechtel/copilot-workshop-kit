@@ -1,92 +1,111 @@
-# Copilot App Workshop Kit
+# 🚀 The 90-Minute Copilot App Hackathon
 
-**Everything a facilitator and attendees need to run a 90-minute GitHub Copilot app session — or scale it to a full-day hackathon.**
+**Six challenges. Ninety minutes. One rule: everything you ship is a real pull request.**
 
-This kit does **not** replace the official GitHub workshop. It wraps it. The teaching
-material is GitHub's, maintained by GitHub, and lives here:
-
-👉 **https://github-samples.github.io/copilot-workshops/app/**
-
-What this kit adds is the part the official workshop doesn't cover: **enterprise pre-flight,
-facilitation timing, and cost awareness.** Those three things are what make the difference
-between a session that works and a session that spends its first hour on installers.
+You're not going to sit and watch slides. You're going to open the GitHub Copilot app, point
+it at a real codebase with a real backlog, and see how much you can get done before the timer
+runs out.
 
 ---
 
-## Start here
+## How it works
 
-| You are… | Read this | When |
-|---|---|---|
-| 🧑‍✈️ **Facilitating** | [FACILITATOR.md](FACILITATOR.md) | Now |
-| 🛡️ **A platform / Copilot admin** | [docs/0-admin-setup.md](docs/0-admin-setup.md) | **T-1 week — blocking** |
-| 💻 **Attending** | [docs/1-attendee-setup.md](docs/1-attendee-setup.md) | Before you arrive |
+| | |
+|---|---|
+| 👥 **Teams** | 2–3 people, one screen driving, rotate the keyboard |
+| ⏱️ **Time** | 90 minutes, including demos |
+| 🎯 **Challenges** | 6 available. **Nobody finishes all six.** Choose. |
+| 🏆 **Scoring** | Points per challenge, bonus points for style |
+| 📦 **Codebase** | Your own copy of a real app, with a real issue backlog |
 
-> ⚠️ **The admin checklist is a hard dependency.** Two enterprise policy switches control
-> whether the Copilot app will even sign in. If they're off, nobody can participate and there
-> is no workaround on the day. Send [docs/0-admin-setup.md](docs/0-admin-setup.md) to an
-> enterprise owner **one week ahead**.
-
----
-
-## The 90-minute agenda
-
-| Time | Block | Material |
-|---|---|---|
-| 0:00–0:08 | Why now — what changed in billing and models | [docs/4-token-optimization.md](docs/4-token-optimization.md) · [docs/5-model-migration.md](docs/5-model-migration.md) |
-| 0:08–0:33 | Token optimization: getting more per credit | [docs/4-token-optimization.md](docs/4-token-optimization.md) |
-| 0:33–0:43 | Model roadmap and migration | [docs/5-model-migration.md](docs/5-model-migration.md) |
-| 0:43–0:58 | The Copilot app — live demo | [docs/6-copilot-app-tour.md](docs/6-copilot-app-tour.md) |
-| **0:58–1:23** | **Hands on — ship a PR with an agent** | **[docs/2-hands-on.md](docs/2-hands-on.md)** |
-| 1:23–1:30 | Close, decisions, next steps | [FACILITATOR.md](FACILITATOR.md) |
-
-Scaling up? [FACILITATOR.md](FACILITATOR.md) also contains a **full-day format** —
-guided morning on the official workshop, afternoon on your own repositories.
+**Challenge 1 is mandatory.** After that, pick your own route through the board. Going deep
+on two challenges scores about the same as rushing four, so play to your team's interest.
 
 ---
 
-## The one rule
+## ⚡ Before you arrive
 
-Every exercise ends with the same question:
+**[→ SETUP.md](SETUP.md) — 20 minutes, do it beforehand.**
 
-> **What did that cost you in credits?**
-
-Cost is normally something finance tells engineers about after the fact. Reading your own
-consumption immediately after your own agent session turns it into something you own. It is
-the single highest-leverage habit in this kit, it takes three minutes, and it is the thing
-most often skipped.
-
-See [docs/3-measuring-credits.md](docs/3-measuring-credits.md).
+Seriously. Every minute spent installing Node in the room is a minute not spent building.
+If you turn up unprepared you'll be pairing with someone who isn't.
 
 ---
 
-## What's in here
+## The board
 
-```
-README.md                      You are here
-FACILITATOR.md                 Run of show, timing, Plan A/B, full-day format
-docs/
-  0-admin-setup.md             ⚠️ Enterprise policies, EMU, network — do this first
-  1-attendee-setup.md          Laptop prerequisites for participants
-  2-hands-on.md                The 25-minute hands-on block, step by step
-  3-measuring-credits.md       How to read what a session actually cost
-  4-token-optimization.md      Ten levers for getting more outcome per credit
-  5-model-migration.md         MAI-Code-1-Flash → 1.1-Flash, and how to find hard-coded IDs
-  6-copilot-app-tour.md        Demo script for the app: agents, skills, plugins, canvases
-```
+| # | Challenge | Points | Time | |
+|---|---|---|---|---|
+| **1** | [First Blood](challenges/1-first-blood.md) — take an issue, ship a PR | **20** | ~15 min | 🔴 **Required** |
+| **2** | [House Rules](challenges/2-house-rules.md) — make the agent follow your conventions | 15 | ~10 min | |
+| **3** | [Plan First](challenges/3-plan-first.md) — Plan mode, then Autopilot | 20 | ~15 min | |
+| **4** | [Give It Eyes](challenges/4-give-it-eyes.md) — connect a browser via MCP | 25 | ~15 min | 🔥 Hard |
+| **5** | [Two At Once](challenges/5-two-at-once.md) — parallel agents, then merge them | 25 | ~15 min | 🔥 Hard |
+| **6** | [Not A Diff](challenges/6-not-a-diff.md) — ship something that isn't code | 15 | ~10 min | |
+
+**Bonus points** are available in every challenge. They're usually worth more than rushing to
+the next one.
 
 ---
 
-## Licence & attribution
+## ⏱️ Run of show
 
-This kit is MIT licensed — see [LICENSE](LICENSE).
+| Time | What |
+|---|---|
+| **0:00–0:10** | Kickoff. Teams form. Everyone confirms the app is signed in. |
+| **0:10–0:25** | 🔴 Challenge 1 — everyone, together |
+| **0:25–1:10** | Free play. Pick your challenges. Facilitators roam. |
+| **1:10–1:25** | ⚡ Demos — **3 minutes per team, hard cut** |
+| **1:25–1:30** | Scores, awards, what happens next |
 
-The official workshop it links to is
-[`github-samples/copilot-workshops`](https://github.com/github-samples/copilot-workshops),
-© GitHub, also MIT. The lab application is
-[`github-samples/tailspin-toys`](https://github.com/github-samples/tailspin-toys).
-If you fork or re-host either, retain their licence files. The simplest and safest approach
-is to **link to the official site rather than re-host it**.
+---
 
-Figures in this kit reflect publicly documented GitHub behaviour at the time of writing.
-Billing mechanics change — always confirm current values against
-[GitHub Docs](https://docs.github.com/copilot) before quoting numbers to a room.
+## 🏆 Scoring
+
+Points come from the challenges. Judges add up to **10 bonus points** at demo time for:
+
+| | |
+|---|---|
+| 🎬 **It actually runs** | You demo it working, not a diff you hope compiles |
+| 🔁 **Someone else could use this** | It's reusable beyond your team |
+| 🧠 **You steered well** | You show a prompt you rewrote, and why the second one worked |
+| 💸 **You spent well** | You know roughly what it cost and can explain the number |
+
+### Awards
+
+- 🥇 **Overall winner** — highest total
+- 💸 **Most Efficient** — best result for the least spend
+- 🔧 **Most Useful** — the thing other teams immediately want
+- 💥 **Best Failure** — the most instructive thing that went wrong
+
+> **Best Failure is a real award, judged seriously.** An agent producing a confidently wrong
+> diff teaches the room more than a clean win. If it breaks, demo the break.
+
+---
+
+## 📋 The demo format
+
+Three minutes. Hard cut. Cover:
+
+1. **What you tried** — one sentence
+2. **Show it running** — not the diff, the thing working
+3. **The prompt that made the difference** — read it out
+4. **What it cost** — your credit number, and whether it surprised you
+
+Teams that spend three minutes explaining what they *would* have built score badly. Teams
+that demo something small and broken and explain why score well.
+
+---
+
+## 🙏 Credits
+
+Challenges here are adapted from GitHub's official
+**[Copilot App Workshop](https://github-samples.github.io/copilot-workshops/app/)** — go there
+for the full, unhurried version with much more detail.
+
+- Workshop: [`github-samples/copilot-workshops`](https://github.com/github-samples/copilot-workshops) (MIT)
+- Lab app: [`github-samples/tailspin-toys`](https://github.com/github-samples/tailspin-toys)
+
+This hackathon is MIT licensed — see [LICENSE](LICENSE). Fork it, run it, change it.
+
+**Facilitating?** → [FACILITATOR.md](FACILITATOR.md)
