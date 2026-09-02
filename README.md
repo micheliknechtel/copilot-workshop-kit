@@ -37,7 +37,7 @@ If you turn up unprepared you'll be pairing with someone who isn't.
 | # | Challenge | Points | Time | |
 |---|---|---|---|---|
 | **1** | [First Blood](challenges/1-first-blood.md) — take an issue, ship a PR | **20** | ~15 min | 🔴 **Required** |
-| **2** | [House Rules](challenges/2-house-rules.md) — make the agent follow your conventions | 15 | ~10 min | |
+| **2** | [House Rules](challenges/2-house-rules.md) — make the agent follow your conventions | 15 | ~15 min | |
 | **3** | [Plan First](challenges/3-plan-first.md) — Plan mode, then Autopilot | 20 | ~15 min | |
 | **4** | [Give It Eyes](challenges/4-give-it-eyes.md) — connect a browser via MCP | 25 | ~15 min | 🔥 Hard |
 | **5** | [Two At Once](challenges/5-two-at-once.md) — parallel agents, then merge them | 25 | ~15 min | 🔥 Hard |
