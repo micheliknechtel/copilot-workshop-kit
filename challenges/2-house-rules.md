@@ -25,16 +25,17 @@ repository. Write it once, everyone benefits, forever.
 ### 1. The agent is not repeatable, so "compare two diffs" proves nothing
 
 Run the same vague prompt twice with **no rule changes at all** and you get two different
-diffs. Here are two real runs of the same issue in the lab repo:
+diffs. Here are two real runs of the same issue in the lab repo, both branched from the same
+commit:
 
 | | Run A | Run B |
 |---|---|---|
-| Files touched | 8 | 13 |
+| Files touched | 11 | 12 |
 | `src/pages/index.astro` | **deleted** | **modified** |
 | New route file | `[...page].astro` | `page/[page].astro` |
-| Extra files | — | `src/lib/pagination.ts`, `GameList.astro`, `pagination.test.ts` |
+| Extra component | — | `GameCatalog.astro` |
 
-Nothing was ruled. The diffs still diverge wildly.
+Nothing was ruled. 9 of the 14 files overlapped; the other 5 diverged.
 
 So `diff before.diff after.diff` is **guaranteed** to show a large difference whether or not
 your rule worked. There is nothing to conclude from it. This challenge therefore uses a
@@ -116,7 +117,7 @@ In the lab repo this typically shows both runs editing `README.md`, adding a com
 
 > 🚦 **Gate: you need at least three lines here.** Fewer means the issue was too small or too
 > open-ended to have a stable core — go back to step 1 and pick a bigger issue. For reference,
-> issue 6 yields 6 stable entries out of 15 total across both runs.
+> issue 6 yields 9 stable entries out of 14 across both runs.
 
 > ⚠️ **Skip anything the shipped instructions already demand.** The lab repo's
 > `copilot-instructions.md` already orders the agent to update the README, update the
@@ -201,6 +202,14 @@ git diff --name-status origin/main...HEAD | grep '^A.*src/components/'   # your 
 
 **You're done when the assertion printed something in both baseline runs and prints nothing
 here.** That's the full 15 points — a binary result, not an opinion.
+
+> ✅ **Worked example, end to end.** Rule: *never create a new file under `src/components/`*.
+> Baseline A printed `A src/components/Pagination.astro`; baseline B printed
+> `A src/components/GameCatalog.astro` and `A src/components/Pagination.astro`; the run from
+> ruled `main` printed **nothing**, and still shipped working pagination with the markup in
+> the page instead. Meanwhile the rejected noise rule (`^D.*src/pages/`) fired on A, not B,
+> and again after — uncorrelated with the rules, which is exactly why targeting it would have
+> produced a meaningless result.
 
 ### 6. Tighten it (bonus)
 
