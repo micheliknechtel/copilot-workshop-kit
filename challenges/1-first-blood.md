@@ -68,7 +68,7 @@ Don't tab away. Watch for:
 Then run them yourself:
 
 ```bash
-npm test
+npm run test:unit
 ```
 
 **Something wrong? Don't fix it by hand.** Tell the agent what's wrong and let it correct

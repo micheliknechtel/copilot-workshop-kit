@@ -25,7 +25,7 @@ models and humans alike.
 
 ```markdown
 # Project
-Astro + TypeScript. Tests run with Vitest via `npm test`.
+Astro + TypeScript. Unit tests run with Vitest via `npm run test:unit`.
 
 # Conventions
 - Prefer named exports over default exports

@@ -55,6 +55,13 @@ have to invent anything.
 > 🔒 **"Use this template" doesn't work?** If your company uses Enterprise Managed Users this
 > can be restricted. Tell your facilitator — there's a prepared fallback repo.
 
+> 🔁 **Already created it under your personal account?** You don't have to start over.
+> Open the repo → **Settings** → **Transfer ownership** → pick the org. Issues, branches and
+> history all move with it. Then repoint your clone:
+> ```bash
+> git remote set-url origin https://github.com/<your-org>/<your-repo>.git
+> ```
+
 ---
 
 ## 4. Prove it runs
@@ -63,11 +70,15 @@ have to invent anything.
 git clone https://github.com/<your-org>/<your-repo>.git
 cd <your-repo>
 npm install
-npm test
+npm run test:unit
 ```
 
 Tests running — even with failures — means you're ready. The agent will use them to check its
 own work.
+
+> ℹ️ **There is no `npm test` in this repo.** The scripts are `npm run test:unit` (Vitest) and
+> `npm run test:e2e` (Playwright). Only the unit tests are needed for setup — the E2E suite
+> builds the site and needs a browser download, so leave it for the day itself.
 
 ---
 
@@ -76,7 +87,7 @@ own work.
 - [ ] Node 22+ and git
 - [ ] Copilot app signed in with **work** identity
 - [ ] My repo exists, in the **right org**
-- [ ] `npm install` and `npm test` have run at least once
+- [ ] `npm install` and `npm run test:unit` have run at least once
 - [ ] I know my repo URL
 
 **Bring a laptop that can install things and reach the internet.** If you'll be on guest
