@@ -20,201 +20,129 @@ repository. Write it once, everyone benefits, forever.
 
 ---
 
-## 🧭 Read this first — two things that decide whether this works
+## 🧭 Read this first — how sessions see your rules
 
-### 1. The agent is not repeatable, so "compare two diffs" proves nothing
+This trips up almost everyone, so it's worth 30 seconds.
 
-Run the same vague prompt twice with **no rule changes at all** and you get two different
-diffs. Here are two real runs of the same issue in the lab repo, both branched from the same
-commit:
-
-| | Run A | Run B |
-|---|---|---|
-| Files touched | 11 | 12 |
-| `src/pages/index.astro` | **deleted** | **modified** |
-| New route file | `[...page].astro` | `page/[page].astro` |
-| Extra component | — | `GameCatalog.astro` |
-
-Nothing was ruled. 9 of the 14 files overlapped; the other 5 diverged.
-
-So `diff before.diff after.diff` is **guaranteed** to show a large difference whether or not
-your rule worked. There is nothing to conclude from it. This challenge therefore uses a
-different pass condition:
-
-> 🎯 **You pick one rule, and one shell command whose output is empty when the rule is
-> obeyed.** Pass = that command prints something before the rule, and nothing after. No
-> eyeballing, no judgement call.
-
-And to know which behaviour is *stable* enough to rule against, you run the baseline
-**twice** and only target what **both** runs did. Anything only one run did is noise.
-
-### 2. Rules only reach a new session once they're on `main`
-
-**In the Copilot app, every session gets its own branch and its own working copy.**
+**In the Copilot app, every session gets its own branch and its own working copy of the
+repo.** That has two consequences that decide whether this challenge works at all:
 
 | | |
 |---|---|
-| 🔁 **A new session branches from `main`.** | Rules sitting as an uncommitted edit — or on another session's branch — have never been seen by it. Merge to `main` first. |
-| 📦 **The agent commits its work.** | So plain `git diff` prints nothing. Use `git diff origin/main...HEAD`. |
+| 🔁 **Rules only reach a new session once they're on `main`.** | A new session branches from `main`. If your rules are sitting as an uncommitted edit in *another* session, the new one has never seen them. **Commit, merge to `main`, then start the next session.** |
+| 📦 **The agent commits its work.** | So plain `git diff` shows **nothing**. To see what a session did, diff against the base branch: `git diff main...HEAD` |
 
-> ❌ `git diff` → empty, every time. It shows unstaged changes only, and never shows new
-> files — which is exactly where a new test lands.
+> ❌ `git diff` → empty, every time. It shows unstaged changes only, and it never shows new
+> files — which is exactly where a regression test would land.
 >
-> ✅ `git fetch origin && git diff origin/main...HEAD` → the actual change set.
+> ✅ `git diff main...HEAD` → the actual change set.
 
-Two traps worth 30 seconds each:
-
-- **You cannot `git checkout main` inside a session** — it fails with
-  `fatal: 'main' is already used by worktree at …`. Merge your rules with a PR on
-  github.com, not locally.
-- **`git show main:…` reads your *local* `main`, which merging on github.com does not
-  move** — and `git fetch` only moves `origin/main`. Always verify against `origin/main`.
-
-**Using the CLI or a single checkout instead?** You're on one branch throughout. Replace
-`origin/main...HEAD` with `git diff`, and instead of merging, just save the file and start a
-new conversation.
+**Using the CLI or an editor in a single checkout instead?** Then you're on one branch the
+whole time. Substitute `git diff` for `git diff main...HEAD`, and instead of merging to
+`main`, just save the file and start a new conversation.
 
 ---
 
 ## Do it
 
-### 1. Capture two baselines (6 min)
+The order matters. You capture the "before" **first**, because once the rules are on `main`
+you can't get an un-ruled run any more.
 
-Pick an issue you did **not** use in Challenge 1. It needs to be big enough to touch three or
-more files — a one-line fix gives you nothing to rule against. In the lab repo, issue 6
-(pagination) is a known-good pick and is the worked example below; substitute your own number
-if you already used it.
+### 1. Capture a baseline (5 min)
 
-Run it **twice, in two separate fresh sessions**, with the same deliberately vague prompt:
+1. Pick an issue you did **not** use in Challenge 1 — check the Issues tab.
+2. Start a session and give it a prompt as vague as you dare. Literally just:
 
-```
-Fix issue 6
-```
+   ```
+   Fix issue 6
+   ```
 
-In each session, save what it did:
+   (Substitute your issue number. The vagueness is the point — it's what lets the rules show up.)
 
-```bash
-git fetch origin
-git diff --name-status origin/main...HEAD > /tmp/baseA.txt   # session 1
-git diff --name-status origin/main...HEAD > /tmp/baseB.txt   # session 2
-```
+3. When it finishes, save the diff:
 
-> 🛑 **File empty?** You ran plain `git diff`, or you're in the wrong session's folder. Check
-> `pwd` and use the `origin/main...HEAD` form.
+   ```bash
+   git diff main...HEAD > /tmp/before.diff
+   wc -l /tmp/before.diff        # sanity check — must not be 0
+   ```
 
-Leave both sessions alone — they are your evidence.
+> 🛑 **`/tmp/before.diff` is empty?** You either ran plain `git diff`, or you ran it in a
+> different session's folder than the one that did the work. Check you're in the right
+> directory (`pwd`) and use the `main...HEAD` form.
 
-### 2. Find the stable behaviour (2 min)
+Now **leave that session alone.** Don't reset it, don't delete it — it *is* your evidence.
+The next run happens in a fresh session, which gets its own branch and folder.
 
-Only what **both** runs did is worth ruling against:
+### 2. Write the rules — and get them onto `main` (5 min)
 
-```bash
-comm -12 <(sort /tmp/baseA.txt) <(sort /tmp/baseB.txt)
-```
+Open `.github/copilot-instructions.md` and **append** a `## Never` section at the end.
 
-In the lab repo this typically shows both runs editing `README.md`, adding a component under
-`src/components/`, and adding a spec under `e2e-tests/`.
+> 💡 **The "Never" section earns its keep fastest.** It's what stops the agent handing you a
+> 400-line diff where 380 lines are reformatting. That's the class of change nobody reviews
+> properly.
 
-> 🚦 **Gate: you need at least three lines here.** Fewer means the issue was too small or too
-> open-ended to have a stable core — go back to step 1 and pick a bigger issue. For reference,
-> issue 6 yields 9 stable entries out of 14 across both runs.
-
-> ⚠️ **Skip anything the shipped instructions already demand.** The lab repo's
-> `copilot-instructions.md` already orders the agent to update the README, update the
-> instructions file, and add tests — and issue 6's own acceptance criteria demand Vitest and
-> Playwright coverage explicitly. A rule contradicting those is a coin flip, not a demo.
-> Target **file scope** instead — nothing else mandates it.
-
-### 3. Write one rule, and its assertion (3 min)
-
-Append a `## Never` section to `.github/copilot-instructions.md`. Rules must be **specific
-and checkable** — a reviewer should point at a diff and say "that broke rule 2" without
-arguing.
+Rules must be **specific and checkable**. A reviewer should be able to point at a diff and
+say "that broke rule 3" without arguing about it.
 
 ```markdown
 ## Never
 
-- Never create a new file under `src/components/` — extend an existing component instead
-- Never add a runtime dependency to `package.json` without asking first
-- Never modify a file under `e2e-tests/` unless the issue names end-to-end behaviour
+- Never reformat, reorder, or re-indent code in a file you weren't asked to change
+- Never add a runtime dependency without asking first
+- Never ship a bug fix without a regression test in the matching `*.test.ts`
 ```
-
-Now pair your rule with the command that decides it:
-
-| Rule | Assertion — must print **nothing** when obeyed |
-|---|---|
-| No new files under `src/components/` | `git diff --name-status origin/main...HEAD \| grep '^A.*src/components/'` |
-| No new runtime dependency | `git diff origin/main...HEAD -- package.json \| grep '^+ *"'` |
-| Don't touch `e2e-tests/` | `git diff --name-only origin/main...HEAD \| grep '^e2e-tests/'` |
-
-**Run your assertion against both baseline sessions now.** It must print something in
-**both**. If it only fires in one, that behaviour was noise — go back to step 2 and pick
-another.
 
 | ❌ Ignored | ✅ Obeyed |
 |---|---|
 | `Write good code` | `Keep exported functions under 40 lines` |
 | `Add tests` | `Every bug fix ships with a regression test in the matching *.test.ts` |
-| `Don't make a mess` | `Never create a new file under src/components/` |
+| `Don't make a mess` | `Never reformat a file you weren't asked to change` |
 
-The left column is unfalsifiable, so there is nothing to comply with. The right column names
-a file, a folder, a number, or an action.
+The left column is unfalsifiable, so there's nothing to comply with. The right column names a
+file, a number, or an action.
 
-### 4. Ship the rules to `main` — alone (2 min)
-
-> 🛑 **The single most common failure: shipping the rules and the issue fix in the same
-> branch.** Then nothing ever lands on `main` by itself, no later session ever sees the
-> rules, and every run looks the same. The rules PR must touch
-> **`.github/copilot-instructions.md` and nothing else.**
+**Then ship it to `main`** — this is the step that makes the whole challenge work:
 
 ```bash
 git add .github/copilot-instructions.md
 git commit -m "Add house rules"
-git push -u origin HEAD
 ```
 
-Open the PR, merge it on github.com, then verify it actually landed:
+Push it and merge the PR, or merge locally. Verify it landed:
 
 ```bash
-git fetch origin
-git show origin/main:.github/copilot-instructions.md | grep "## Never"
+git show main:.github/copilot-instructions.md | grep "## Never"
 ```
 
-> 🛑 **No output?** It isn't on `main` yet and the next session will not see it. Note this
-> checks `origin/main` — checking plain `main` prints nothing even on success.
+> 🛑 **No output?** Your rules aren't on `main` yet, and the next session will not see them.
+> Fix that before continuing or step 3 will produce an identical diff and you'll think the
+> rules failed.
 
-If your main checkout is a separate folder, refresh it so new sessions branch from the rules:
-
-```bash
-git -C /path/to/your/main/checkout pull
-```
-
-### 5. Prove it (2 min)
+### 3. Prove it (4 min)
 
 1. **Start a brand-new session.** It branches from `main`, so it picks up your rules.
 2. Give it the **exact same prompt** as step 1: `Fix issue 6`
-3. Run your assertion one last time:
+3. Compare:
 
-```bash
-git fetch origin
-git diff --name-status origin/main...HEAD | grep '^A.*src/components/'   # your assertion
-```
+   ```bash
+   git diff main...HEAD > /tmp/after.diff
+   diff /tmp/before.diff /tmp/after.diff
+   ```
 
-**You're done when the assertion printed something in both baseline runs and prints nothing
-here.** That's the full 15 points — a binary result, not an opinion.
+**You're done when at least one rule is visibly obeyed in `after.diff` and visibly not obeyed
+in `before.diff`.** For example:
 
-> ✅ **Worked example, end to end.** Rule: *never create a new file under `src/components/`*.
-> Baseline A printed `A src/components/Pagination.astro`; baseline B printed
-> `A src/components/GameCatalog.astro` and `A src/components/Pagination.astro`; the run from
-> ruled `main` printed **nothing**, and still shipped working pagination with the markup in
-> the page instead. Meanwhile the rejected noise rule (`^D.*src/pages/`) fired on A, not B,
-> and again after — uncorrelated with the rules, which is exactly why targeting it would have
-> produced a meaningless result.
+- `before.diff` reformats a file the issue never mentioned; `after.diff` leaves it alone
+- `before.diff` has no test; `after.diff` adds one in the matching `*.test.ts`
+- `before.diff` adds a dependency; `after.diff` asks first
 
-### 6. Tighten it (bonus)
+That single contrast is worth the full 15 points.
 
-Assertion still firing? Rewrite **that one rule** to be more specific — name the folder, the
-file, the number — merge again, rerun. Note what v1 said, what v2 said, and why v2 worked.
+### 4. Tighten it (1 min)
+
+Rule still ignored? Rewrite **that one rule** to be more specific — name the file, the folder,
+the number — merge again, and rerun. Note what v1 said, what v2 said, and why v2 worked.
+That's a bonus on its own.
 
 ---
 
@@ -222,24 +150,23 @@ file, the number — merge again, rerun. Note what v1 said, what v2 said, and wh
 
 | | Points |
 |---|---|
-| Rules merged to `main` alone, and an assertion that fires on both baselines and not after | **15** |
-| Rules merged, no assertion evidence that behaviour changed | 7 |
+| Rules merged to `main`, and before/after diffs showing a rule being obeyed | **15** |
+| Rules merged, no evidence it changed behaviour | 7 |
 
 ### 🌟 Bonus
 
 | | Points |
 |---|---|
-| Show the assertion output before and after — the flip *is* the demo | **+5** |
+| Show the two diffs side by side — the difference *is* the demo | **+5** |
 | A rule you had to rewrite because v1 was ignored, and why v2 worked | **+5** |
 | A rule that's genuinely specific to your real team, not this lab app | **+5** |
-| A candidate rule you **rejected** because it fired on only one baseline | **+5** |
 
 ---
 
 ## 🎬 Demo tip
 
-Two terminal lines: the assertion firing on the baseline, and the same command silent after
-the rules. Three minutes, no diff-reading, and the room instantly gets it.
+This is one of the best three-minute demos on the board: **same vague prompt, two diffs, side
+by side.** The room instantly gets it, and everyone goes home and writes one.
 
 ---
 
@@ -247,14 +174,12 @@ the rules. Three minutes, no diff-reading, and the room instantly gets it.
 
 | Symptom | Cause |
 |---|---|
-| Baseline file is 0 bytes | You ran plain `git diff`. The agent **commits** — use `git diff origin/main...HEAD` |
-| Both runs look nothing alike | Expected. That's why you baseline twice and target only the overlap |
-| Assertion fires on one baseline only | Noise, not a convention. Pick another behaviour from step 2 |
-| Every run identical, rules seem ignored | Rules never reached `main` alone. Rerun the `git show origin/main:…` check |
-| `git checkout main` fails | You're in a session worktree. Merge via PR on github.com instead |
-| `git show main:…` empty after merging | Local `main` is stale and `git fetch` doesn't move it — check `origin/main` |
+| `before.diff` is 0 bytes | You ran plain `git diff`. The agent **commits** — use `git diff main...HEAD` |
+| Both diffs look identical | Rules never reached `main`. Run the `git show main:...` check in step 2 |
+| New test file missing from the diff | `git diff` never shows untracked files — another reason to diff against `main` |
 | Agent ignores the file entirely | Wrong path — must be exactly `.github/copilot-instructions.md` |
-| Rule obeyed but it was already mandated | The shipped instructions already required it. Target file scope instead |
+| Rules present but still ignored | Too vague. See the ❌/✅ table and go to step 4 |
+| Nothing meaningful to compare | Issue was too trivial; pick one touching two or three files |
 
 ---
 
