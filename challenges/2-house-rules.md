@@ -16,20 +16,42 @@ repository. Write it once, everyone benefits, forever.
 
 > ⚠️ **The lab repo already has one.** The template ships `.github/copilot-instructions.md`
 > plus several files under `.github/instructions/`. You are **not** starting from a blank
-> page — you're **adding rules to an existing file** and proving they changed the agent's
-> behaviour. Do not delete or rewrite what's already there.
+> page — you're **adding rules to an existing file**. Don't delete what's already there.
+
+---
+
+## 🧭 Read this first — how sessions see your rules
+
+This trips up almost everyone, so it's worth 30 seconds.
+
+**In the Copilot app, every session gets its own branch and its own working copy of the
+repo.** That has two consequences that decide whether this challenge works at all:
+
+| | |
+|---|---|
+| 🔁 **Rules only reach a new session once they're on `main`.** | A new session branches from `main`. If your rules are sitting as an uncommitted edit in *another* session, the new one has never seen them. **Commit, merge to `main`, then start the next session.** |
+| 📦 **The agent commits its work.** | So plain `git diff` shows **nothing**. To see what a session did, diff against the base branch: `git diff main...HEAD` |
+
+> ❌ `git diff` → empty, every time. It shows unstaged changes only, and it never shows new
+> files — which is exactly where a regression test would land.
+>
+> ✅ `git diff main...HEAD` → the actual change set.
+
+**Using the CLI or an editor in a single checkout instead?** Then you're on one branch the
+whole time. Substitute `git diff` for `git diff main...HEAD`, and instead of merging to
+`main`, just save the file and start a new conversation.
 
 ---
 
 ## Do it
 
-The order below matters. You capture the "before" **first**, because once the rules are in
-the file you can't get an un-ruled run any more.
+The order matters. You capture the "before" **first**, because once the rules are on `main`
+you can't get an un-ruled run any more.
 
 ### 1. Capture a baseline (5 min)
 
 1. Pick an issue you did **not** use in Challenge 1 — check the Issues tab.
-2. Start a **new session** and give it a prompt as vague as you dare. Literally just:
+2. Start a session and give it a prompt as vague as you dare. Literally just:
 
    ```
    Fix issue 6
@@ -37,20 +59,21 @@ the file you can't get an un-ruled run any more.
 
    (Substitute your issue number. The vagueness is the point — it's what lets the rules show up.)
 
-3. When it finishes, save the diff and throw the work away:
+3. When it finishes, save the diff:
 
    ```bash
-   git diff > /tmp/before.diff
-   git checkout .
-   git clean -fd
+   git diff main...HEAD > /tmp/before.diff
+   wc -l /tmp/before.diff        # sanity check — must not be 0
    ```
 
-Keep `/tmp/before.diff` open in a tab. That's your evidence.
+> 🛑 **`/tmp/before.diff` is empty?** You either ran plain `git diff`, or you ran it in a
+> different session's folder than the one that did the work. Check you're in the right
+> directory (`pwd`) and use the `main...HEAD` form.
 
-> 💡 **Don't skip the reset.** If leftover changes are still on disk, run 2 will build on top
-> of them and the comparison is worthless.
+Now **leave that session alone.** Don't reset it, don't delete it — it *is* your evidence.
+The next run happens in a fresh session, which gets its own branch and folder.
 
-### 2. Write the rules (4 min)
+### 2. Write the rules — and get them onto `main` (5 min)
 
 Open `.github/copilot-instructions.md` and **append** a `## Never` section at the end.
 
@@ -58,7 +81,7 @@ Open `.github/copilot-instructions.md` and **append** a `## Never` section at th
 > 400-line diff where 380 lines are reformatting. That's the class of change nobody reviews
 > properly.
 
-Rules must be **specific and checkable**. A reviewer should be able to point at the diff and
+Rules must be **specific and checkable**. A reviewer should be able to point at a diff and
 say "that broke rule 3" without arguing about it.
 
 ```markdown
@@ -67,7 +90,6 @@ say "that broke rule 3" without arguing about it.
 - Never reformat, reorder, or re-indent code in a file you weren't asked to change
 - Never add a runtime dependency without asking first
 - Never ship a bug fix without a regression test in the matching `*.test.ts`
-- Never commit or push directly to `main`
 ```
 
 | ❌ Ignored | ✅ Obeyed |
@@ -76,18 +98,34 @@ say "that broke rule 3" without arguing about it.
 | `Add tests` | `Every bug fix ships with a regression test in the matching *.test.ts` |
 | `Don't make a mess` | `Never reformat a file you weren't asked to change` |
 
-The left column is unfalsifiable, so the model has nothing to comply with. The right column
-names a file, a number, or an action.
+The left column is unfalsifiable, so there's nothing to comply with. The right column names a
+file, a number, or an action.
 
-### 3. Prove it (5 min)
+**Then ship it to `main`** — this is the step that makes the whole challenge work:
 
-1. **Start a fresh session.** Instructions are loaded per request — a session already running
-   may not pick up your edit.
+```bash
+git add .github/copilot-instructions.md
+git commit -m "Add house rules"
+```
+
+Push it and merge the PR, or merge locally. Verify it landed:
+
+```bash
+git show main:.github/copilot-instructions.md | grep "## Never"
+```
+
+> 🛑 **No output?** Your rules aren't on `main` yet, and the next session will not see them.
+> Fix that before continuing or step 3 will produce an identical diff and you'll think the
+> rules failed.
+
+### 3. Prove it (4 min)
+
+1. **Start a brand-new session.** It branches from `main`, so it picks up your rules.
 2. Give it the **exact same prompt** as step 1: `Fix issue 6`
 3. Compare:
 
    ```bash
-   git diff > /tmp/after.diff
+   git diff main...HEAD > /tmp/after.diff
    diff /tmp/before.diff /tmp/after.diff
    ```
 
@@ -98,13 +136,13 @@ in `before.diff`.** For example:
 - `before.diff` has no test; `after.diff` adds one in the matching `*.test.ts`
 - `before.diff` adds a dependency; `after.diff` asks first
 
-That single contrast is worth the full 15 points. Commit the instructions file.
+That single contrast is worth the full 15 points.
 
 ### 4. Tighten it (1 min)
 
-Rule still ignored in run 2? Rewrite **that one rule** to be more specific — name the file,
-the folder, the number — and run once more. Note what v1 said, what v2 said, and why v2
-worked. That's a bonus on its own.
+Rule still ignored? Rewrite **that one rule** to be more specific — name the file, the folder,
+the number — merge again, and rerun. Note what v1 said, what v2 said, and why v2 worked.
+That's a bonus on its own.
 
 ---
 
@@ -112,8 +150,8 @@ worked. That's a bonus on its own.
 
 | | Points |
 |---|---|
-| Instructions committed, and before/after diffs showing a rule being obeyed | **15** |
-| Instructions committed, no evidence it changed behaviour | 7 |
+| Rules merged to `main`, and before/after diffs showing a rule being obeyed | **15** |
+| Rules merged, no evidence it changed behaviour | 7 |
 
 ### 🌟 Bonus
 
@@ -136,10 +174,12 @@ by side.** The room instantly gets it, and everyone goes home and writes one.
 
 | Symptom | Cause |
 |---|---|
-| Both diffs look identical | Rules too vague, or you reused the old session instead of starting a new one |
-| Run 2 diff is enormous | You forgot `git checkout .` after run 1 — it stacked |
-| Agent ignores the file entirely | Wrong path — it must be exactly `.github/copilot-instructions.md` |
-| Nothing to compare | Issue was too trivial; pick one touching two or three files |
+| `before.diff` is 0 bytes | You ran plain `git diff`. The agent **commits** — use `git diff main...HEAD` |
+| Both diffs look identical | Rules never reached `main`. Run the `git show main:...` check in step 2 |
+| New test file missing from the diff | `git diff` never shows untracked files — another reason to diff against `main` |
+| Agent ignores the file entirely | Wrong path — must be exactly `.github/copilot-instructions.md` |
+| Rules present but still ignored | Too vague. See the ❌/✅ table and go to step 4 |
+| Nothing meaningful to compare | Issue was too trivial; pick one touching two or three files |
 
 ---
 
